@@ -214,7 +214,8 @@
     "translateEngineLlm": "AI モデル",
     "lightboxClose": "閉じる",
     "lightboxPrev": "前の画像",
-    "lightboxNext": "次の画像"
+    "lightboxNext": "次の画像",
+    "lightboxHint": "スクロールでズーム · ドラッグで移動"
   },
   "settings": {
     "title": "設定",

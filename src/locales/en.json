@@ -214,7 +214,8 @@
     "translateEngineLlm": "AI model",
     "lightboxClose": "Close",
     "lightboxPrev": "Previous image",
-    "lightboxNext": "Next image"
+    "lightboxNext": "Next image",
+    "lightboxHint": "Scroll to zoom · Drag to pan"
   },
   "settings": {
     "title": "Settings",

@@ -214,7 +214,8 @@
     "translateEngineLlm": "AI 模型",
     "lightboxClose": "关闭",
     "lightboxPrev": "上一张",
-    "lightboxNext": "下一张"
+    "lightboxNext": "下一张",
+    "lightboxHint": "滚动缩放 · 拖拽平移"
   },
   "settings": {
     "title": "设置",
