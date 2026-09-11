@@ -197,6 +197,7 @@ export default function Reader({ onToast }: Props) {
     defaultOpenMode === "extracted",
   );
   const [showTranslation, setShowTranslation] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   // Reading vs. the article's original web page, shown in an in-app iframe.
   // Sites that set X-Frame-Options / CSP frame-ancestors refuse to load this
   // way — the in-frame hint points those back to "open in browser".
@@ -270,6 +271,7 @@ export default function Reader({ onToast }: Props) {
   useEffect(() => {
     setShowExtracted(useUi.getState().prefs.defaultOpenMode === "extracted");
     setShowTranslation(false);
+    setAnalysisOpen(false);
     setViewMode("reader");
     setScrolled(false);
     setTagPick(null);
@@ -307,7 +309,8 @@ export default function Reader({ onToast }: Props) {
   // below).
   const modalOpen = useUi((s) => s.modalOpen);
   const menuOpen = useUi((s) => s.menuOpen);
-  const overlayOpen = modalOpen || menuOpen || aiOpen || tagPick != null;
+  const overlayOpen =
+    modalOpen || menuOpen || aiOpen || analysisOpen || tagPick != null;
   // Read the latest value inside the lifecycle effect without making it a
   // dependency — overlays toggle visibility (below), never the webview's life.
   const overlayOpenRef = useRef(overlayOpen);
@@ -514,6 +517,7 @@ export default function Reader({ onToast }: Props) {
 
   const hasExtracted = !!a?.extractedHtml;
   const canTranslate = !!(a?.extractedHtml || a?.contentHtml);
+  const canAnalyze = canTranslate;
   const baseBody =
     (showExtracted && a?.extractedHtml ? a.extractedHtml : a?.contentHtml) || "";
   const jobForTarget = job && job.lang === targetLang ? job : undefined;
@@ -897,6 +901,20 @@ export default function Reader({ onToast }: Props) {
         >
           <Icon name="globe" size={16} />
         </button>
+        <button
+          className={analysisOpen ? "tb-btn on" : "tb-btn"}
+          title={t("reader.tbWritingAnalysis")}
+          aria-label={t("reader.tbWritingAnalysis")}
+          aria-pressed={analysisOpen}
+          disabled={!canAnalyze}
+          onClick={() => {
+            const next = !analysisOpen;
+            setAnalysisOpen(next);
+            if (next) setAiOpen(false);
+          }}
+        >
+          <Icon name="analysis" size={16} />
+        </button>
         <HighlightLayer
           // Keyed by article id so the export menu / popovers reset cleanly
           // when the reader switches articles.
@@ -1197,6 +1215,15 @@ export default function Reader({ onToast }: Props) {
         open={aiOpen}
         article={a}
         onClose={() => setAiOpen(false)}
+        mode="summary"
+      />
+
+      <AIDrawer
+        key={a.id + "-analysis"}
+        open={analysisOpen}
+        article={a}
+        onClose={() => setAnalysisOpen(false)}
+        mode="analysis"
       />
 
       {tagPick && (
@@ -1244,7 +1271,11 @@ export default function Reader({ onToast }: Props) {
             {
               icon: aiOpen ? "sparkle-fill" : "sparkle",
               label: t("reader.tbAiSummary"),
-              onClick: () => setAiOpen(!aiOpen),
+              onClick: () => {
+                const next = !aiOpen;
+                setAiOpen(next);
+                if (next) setAnalysisOpen(false);
+              },
             },
             ...(canTranslate
               ? [
@@ -1282,18 +1313,25 @@ function AIDrawer({
   open,
   article,
   onClose,
+  mode,
 }: {
   open: boolean;
   article: ArticleDetail;
   onClose: () => void;
+  mode: "summary" | "analysis";
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const aiWidth = useUi((s) => s.aiWidth);
+  const isAnalysis = mode === "analysis";
+  const title = t(
+    isAnalysis ? "reader.writingAnalysisTitle" : "reader.aiSummaryTitle",
+  );
+  const initialText = isAnalysis ? null : article.aiSummary;
   // Initialised from the article's stored summary (if any). The parent keys
   // this component by article id, so a switch remounts it and re-runs this
   // initialiser — no separate "reset on article change" effect is needed.
-  const [text, setText] = useState<string | null>(article.aiSummary);
+  const [text, setText] = useState<string | null>(initialText);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -1325,8 +1363,8 @@ function AIDrawer({
     let sawErrorEvent = false;
     setBusy(true);
     setText("");
-    api
-      .aiSummarize(article.id, (ev) => {
+    const request = isAnalysis ? api.aiAnalyzeArticle : api.aiSummarize;
+    request(article.id, (ev) => {
         if (cancelled) return;
         if (ev.type === "delta") setText((s) => (s ?? "") + ev.data);
         else if (ev.type === "error") {
@@ -1357,10 +1395,10 @@ function AIDrawer({
       // (it is never persisted), so drop the partial fragment held here too.
       // Reopening then re-generates from scratch instead of showing — and
       // permanently freezing on — a truncated half-summary.
-      if (!settled) setText(article.aiSummary);
+      if (!settled) setText(initialText);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, article.id, retry]);
+  }, [open, article.id, retry, mode]);
 
   const loading = busy && !text;
   const onRetry = () => {
@@ -1378,7 +1416,7 @@ function AIDrawer({
       // A labelled complementary landmark so screen-reader users can jump
       // straight to the summary.
       role="complementary"
-      aria-label={t("reader.aiSummaryTitle")}
+      aria-label={title}
       // When closed the drawer is only moved off-screen — `inert` keeps its
       // close button and content out of the tab order and the a11y tree.
       inert={!open}
@@ -1397,9 +1435,9 @@ function AIDrawer({
       </div>
       <div className="ai-head">
         <span className="accent-ico">
-          <Icon name="sparkle-fill" size={15} />
+          <Icon name={isAnalysis ? "analysis" : "sparkle-fill"} size={15} />
         </span>
-        <h3>{t("reader.aiSummaryTitle")}</h3>
+        <h3>{title}</h3>
         <button
           className="tb-btn close"
           onClick={onClose}
@@ -1415,13 +1453,21 @@ function AIDrawer({
             <span className="ai-dot" />
             <span className="ai-dot" />
             <span className="ai-dot" />
-            <span style={{ marginLeft: 4 }}>{t("reader.aiReadingFullText")}</span>
+            <span style={{ marginLeft: 4 }}>
+              {t(
+                isAnalysis
+                  ? "reader.writingAnalysisReading"
+                  : "reader.aiReadingFullText",
+              )}
+            </span>
           </div>
         )}
         {failed && !busy && (
           <div className="ai-error">
             <Icon name="alert" size={18} />
-            <span>{t("reader.aiError")}</span>
+            <span>
+              {t(isAnalysis ? "reader.writingAnalysisError" : "reader.aiError")}
+            </span>
             <button className="empty-retry" onClick={onRetry}>
               <Icon name="refresh" size={12} />
               {t("common.retry")}

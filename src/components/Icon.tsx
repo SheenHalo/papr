@@ -8,6 +8,7 @@ export type IconName =
   | "inbox" | "circle" | "unread" | "star" | "star-fill" | "bookmark"
   | "bookmark-fill" | "clock" | "tag" | "folder" | "rss" | "search"
   | "plus" | "check" | "check-all" | "sort" | "sparkle" | "sparkle-fill"
+  | "analysis"
   | "open" | "share" | "send" | "more" | "refresh" | "settings" | "chevron-down"
   | "chevron-right" | "globe" | "focus" | "arrow-down" | "arrow-up"
   | "eye" | "eye-off" | "trash" | "mute" | "pin" | "x" | "command"
@@ -87,6 +88,8 @@ export default function Icon({
       return <svg {...p}><path d="M11.4 2.6a.65.65 0 0 1 1.2 0l1.55 4.13a2 2 0 0 0 1.17 1.17l4.13 1.55a.65.65 0 0 1 0 1.2l-4.13 1.55a2 2 0 0 0-1.17 1.17l-1.55 4.13a.65.65 0 0 1-1.2 0l-1.55-4.13a2 2 0 0 0-1.17-1.17L4.55 11.6a.65.65 0 0 1 0-1.2l4.13-1.55a2 2 0 0 0 1.17-1.17z" /><path d="M19 14v3M20.5 15.5h-3M5 4v3M6.5 5.5h-3" /></svg>;
     case "sparkle-fill":
       return <svg {...p}><path d="M11.4 2.6a.65.65 0 0 1 1.2 0l1.55 4.13a2 2 0 0 0 1.17 1.17l4.13 1.55a.65.65 0 0 1 0 1.2l-4.13 1.55a2 2 0 0 0-1.17 1.17l-1.55 4.13a.65.65 0 0 1-1.2 0l-1.55-4.13a2 2 0 0 0-1.17-1.17L4.55 11.6a.65.65 0 0 1 0-1.2l4.13-1.55a2 2 0 0 0 1.17-1.17z" fill={color} stroke="none" /><path d="M19 14v3M20.5 15.5h-3M5 4v3M6.5 5.5h-3" /></svg>;
+    case "analysis":
+      return <svg {...p}><path d="M4 19V5M4 19h16" /><path d="m7 15 3-4 3 2 5-6" /><circle cx="7" cy="15" r="1" fill={color} stroke="none" /><circle cx="10" cy="11" r="1" fill={color} stroke="none" /><circle cx="13" cy="13" r="1" fill={color} stroke="none" /><circle cx="18" cy="7" r="1" fill={color} stroke="none" /></svg>;
     case "open":
       return <svg {...p}><path d="M15 3h6v6M21 3l-9 9M18 13v5a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h5" /></svg>;
     case "share":

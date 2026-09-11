@@ -156,6 +156,15 @@ export function aiSummarize(
   return invoke<void>("ai_summarize", { articleId, onToken: channel });
 }
 
+export function aiAnalyzeArticle(
+  articleId: number,
+  onToken: (e: AiEvent) => void,
+): Promise<void> {
+  const channel = new Channel<AiEvent>();
+  channel.onmessage = onToken;
+  return invoke<void>("ai_analyze_article", { articleId, onToken: channel });
+}
+
 export function aiAsk(
   question: string,
   onToken: (e: AiEvent) => void,
@@ -196,6 +205,10 @@ export const getSetting = (key: string) =>
   invoke<string | null>("get_setting", { key });
 export const setSetting = (key: string, value: string) =>
   invoke<void>("set_setting", { key, value });
+export const getWritingAnalysisPrompt = () =>
+  invoke<string>("get_writing_analysis_prompt");
+export const setWritingAnalysisPrompt = (value: string) =>
+  setSetting("writing_analysis_prompt", value);
 
 // ── storage ──
 export interface StorageStats {

@@ -2495,6 +2495,34 @@ button { font-family: inherit; }
 }
 .s-text-input:focus { border-color: var(--accent); }
 
+/* settings: editable prompt for article-writing analysis */
+.writing-analysis-prompt-group .settings-group-desc {
+  margin-bottom: 10px;
+}
+.writing-analysis-prompt {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--hair-strong);
+  border-radius: 7px;
+  padding: 10px 12px;
+  outline: 0;
+}
+.writing-analysis-prompt:focus { border-color: var(--accent); }
+.writing-analysis-prompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 /* ====== App shell + audio mini-player ====== */
 .app-shell {
   display: flex;

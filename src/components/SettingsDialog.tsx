@@ -1349,6 +1349,7 @@ function AdvancedSection({ onToast }: { onToast: (m: string) => void }) {
   return (
     <>
       <AiSettingsGroup onToast={onToast} />
+      <WritingAnalysisPromptGroup onToast={onToast} />
       <StorageGroup onToast={onToast} />
       <NetworkGroup onToast={onToast} />
       <div className="settings-group">
@@ -1880,6 +1881,87 @@ function AiSettingsGroup({ onToast }: { onToast: (m: string) => void }) {
           }}
         />
       </Row>
+    </div>
+  );
+}
+
+/** The article-writing analysis prompt is user-editable and stored locally. */
+function WritingAnalysisPromptGroup({ onToast }: { onToast: (m: string) => void }) {
+  const { t } = useTranslation();
+  const [prompt, setPrompt] = useState("");
+  const [savedPrompt, setSavedPrompt] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api
+      .getWritingAnalysisPrompt()
+      .then((value) => {
+        setPrompt(value);
+        setSavedPrompt(value);
+        setLoaded(true);
+      })
+      .catch((e) => reportError(e));
+  }, []);
+
+  const save = () => {
+    const value = prompt.trim();
+    setBusy(true);
+    api
+      .setWritingAnalysisPrompt(value)
+      .then(() => api.getWritingAnalysisPrompt())
+      .then((effectivePrompt) => {
+        setPrompt(effectivePrompt);
+        setSavedPrompt(effectivePrompt);
+        onToast(t("settings.advanced.writingPromptSaved"));
+      })
+      .catch((e) => reportError(e))
+      .finally(() => setBusy(false));
+  };
+
+  const restore = () => {
+    setBusy(true);
+    api
+      .setWritingAnalysisPrompt("")
+      .then(() => api.getWritingAnalysisPrompt())
+      .then((value) => {
+        setPrompt(value);
+        setSavedPrompt(value);
+        onToast(t("settings.advanced.writingPromptReset"));
+      })
+      .catch((e) => reportError(e))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    <div className="settings-group writing-analysis-prompt-group">
+      <h3 className="settings-group-title">
+        {t("settings.advanced.writingPromptTitle")}
+      </h3>
+      <p className="settings-group-desc">
+        {t("settings.advanced.writingPromptDesc")}
+      </p>
+      <textarea
+        className="writing-analysis-prompt"
+        value={prompt}
+        disabled={!loaded || busy}
+        spellCheck={false}
+        rows={18}
+        aria-label={t("settings.advanced.writingPromptTitle")}
+        onChange={(e) => setPrompt(e.target.value)}
+      />
+      <div className="writing-analysis-prompt-actions">
+        <button className="s-btn" onClick={restore} disabled={!loaded || busy}>
+          {t("settings.advanced.writingPromptResetButton")}
+        </button>
+        <button
+          className="s-btn primary"
+          onClick={save}
+          disabled={!loaded || busy || prompt === savedPrompt}
+        >
+          {t("settings.advanced.writingPromptSave")}
+        </button>
+      </div>
     </div>
   );
 }
